@@ -1,0 +1,40 @@
+name: Deploy to S3 and CloudFront
+
+on:
+  workflow_call:
+    inputs:
+      s3-bucket:
+        description: 'The S3 bucket to deploy to'
+        required: true
+        type: string
+      cloudfront-distribution-id:
+        description: 'The CloudFront distribution to invalidate'
+        required: true
+        type: string
+      build-artifact-name:
+        description: "The name of the build artifact to download"
+        required: true
+        type: string
+      working-directory:
+        description: 'The directory where the artifact is downloaded'
+        required: false
+        type: string
+        default: '.'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.build-artifact-name }}
+          path: ${{ inputs.working-directory }}/dist
+
+      - name: 🚀 Deploy to S3 with optimized sync
+        run: |
+          aws s3 sync ${{ inputs.working-directory }}/dist s3://${{ inputs.s3-bucket }} --delete --cache-control "public,max-age=31536000"
+          
+      - name: 🔄 Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{ inputs.cloudfront-distribution-id }} --paths "/*"

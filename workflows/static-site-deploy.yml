@@ -1,0 +1,51 @@
+name: Deploy Static Site to S3 and CloudFront
+
+on:
+  workflow_call:
+    inputs:
+      s3-bucket:
+        description: 'The S3 bucket to deploy to'
+        required: true
+        type: string
+      cloudfront-distribution-id:
+        description: 'The CloudFront distribution to invalidate'
+        required: true
+        type: string
+      source-directory:
+        description: 'The directory containing the static files to deploy'
+        required: false
+        type: string
+        default: 'website/public'
+      role-to-assume:
+        description: 'The AWS IAM role to assume'
+        required: true
+        type: string
+      aws-region:
+        description: 'The AWS region to use'
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔐 Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ inputs.role-to-assume }}
+          role-session-name: GitHubActions-Deploy-${{ github.run_id }}
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: 🚀 Deploy to S3 with optimized sync
+        run: |
+          aws s3 sync ${{ inputs.source-directory }} s3://${{ inputs.s3-bucket }} --delete --cache-control "public,max-age=31536000"
+
+      - name: 🔄 Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{ inputs.cloudfront-distribution-id }} --paths "/*"

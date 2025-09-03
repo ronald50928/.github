@@ -1,8 +1,0 @@
-name: Test Public Reusable Workflow
-
-on:
-  workflow_dispatch:
-
-jobs:
-  test-public:
-    uses: actions/checkout@v4

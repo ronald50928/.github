@@ -1,8 +1,0 @@
-name: Test Simple Reusable Call
-
-on:
-  workflow_dispatch:
-
-jobs:
-  test:
-    uses: ronald50928/.github/.github/workflows/test-simple.yml@main

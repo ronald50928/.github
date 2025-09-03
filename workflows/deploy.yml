@@ -1,0 +1,17 @@
+name: CI/CD for lastmileit
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    uses: ronald50928/.github/.github/workflows/static-site-deploy.yml@main
+    with:
+      s3-bucket: ${{ secrets.S3_BUCKET_NAME }}
+      cloudfront-distribution-id: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
+      source-directory: 'website/public'
+      role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+      aws-region: 'us-east-1'
+    secrets: inherit

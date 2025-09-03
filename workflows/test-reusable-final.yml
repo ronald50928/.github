@@ -1,0 +1,11 @@
+name: Test Reusable Workflow Final
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-auth:
+    uses: ronald50928/.github/.github/workflows/aws-auth.yml@main
+    with:
+      role-to-assume: "arn:aws:iam::796973484720:role/GitHubActions-WebsiteDeployment-Role"
+      aws-region: 'us-east-1'
